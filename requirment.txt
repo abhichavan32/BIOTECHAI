@@ -1,4 +1,0 @@
-modal
-matplotlib
-pandas
-seaborn
