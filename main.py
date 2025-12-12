@@ -25,16 +25,16 @@ evo2_image = (
             "curl",
         ]
     )
-    .env({"CC": "/usr/bin/gcc", "CXX": "/usr/bin/g++"})
-    .run_commands(
-        [
-            "git clone https://github.com/arcinstitute/evo2",
-            "cd evo2 && pip install -e ."
-        ]
-    )
-    .run_commands("git clone --recurse-submodules https://github.com/ArcInstitute/evo2.git && cd evo2 && pip install .")
-    .run_commands("pip uninstall -y transformer-engine transformer_engine")
-    .run_commands("pip install 'transformer_engine[pytorch]==1.13' --no-build-isolation")
+    .env({"CC": "/usr/bin/gcc", "CXX": "/usr/bin/g++", "CACHE_BUST": "4", "GLIBCXX_USE_CXX11_ABI": "0"})
+    # Install build tools and critical dependencies
+    .run_commands("pip install ninja packaging wheel")
+    .run_commands("pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu124")
+    .run_commands("pip install flash-attn==2.6.3 --no-build-isolation")
+    .run_commands("pip install 'transformer_engine[pytorch]==1.13.0' --no-build-isolation")
+    .run_commands("pip install stripedhyena --no-build-isolation")
+    .run_commands("git clone https://github.com/Zymrael/vortex.git && cd vortex && pip install .")
+    .run_commands("git clone --recurse-submodules https://github.com/ArcInstitute/evo2.git && cd evo2 && pip install --no-deps .")
+
     .pip_install_from_requirements("requirements.txt")
 )
 
@@ -60,11 +60,16 @@ def run_brca1_analysis():
     import seaborn as sns
     from sklearn.metrics import roc_auc_score
 
+    import torch
+    print(f"Torch Version: {torch.__version__}")
+    print(f"CUDA Available: {torch.cuda.is_available()}")
+    print(f"Device Count: {torch.cuda.device_count()}")
+    
     from evo2 import Evo2
     WINDOW_SIZE=8192
     print("Loading evo2 Modal...")
-    model=Evo2("evo2_7b")
-    print("Evo2 model loaded")
+    # model=Evo2("evo2_7b")
+    # print("Evo2 model loaded")
 
     brca1_df = pd.read_excel(
      '/evo2/notebooks/brca1/41586_2018_461_MOESM3_ESM.xlsx',
